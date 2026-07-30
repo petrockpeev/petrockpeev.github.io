@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Color & Text Game Picker</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  body { 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    height: 100vh; 
+    margin: 0;
+    font-family: 'Arial Black', sans-serif; 
+    transition: background 0.3s ease; 
+    flex-direction: column; 
+    background-color: #f0f0f0;
+  }
+  .display-box { 
+    padding: 50px; 
+    font-size: 3rem; 
+    background: rgba(255,255,255,0.9); 
+    border: 5px solid #000;
+    border-radius: 20px; 
+    text-align: center; 
+    max-width: 80%;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+  }
+  .btn { 
+    margin-top: 40px; 
+    padding: 20px 40px; 
+    font-size: 1.8rem; 
+    font-weight: bold;
+    background-color: #000;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+  }
+  .btn:active { transform: scale(0.95); }
+</style>
+</head>
+<body>
+
+<div class="display-box" id="gameBox">READY?</div>
+<button class="btn" onclick="nextMove()">NEXT MOVE</button>
+
+<script>
+  // List of colors in play
+  const colors = [
+    { name: "BLUE", hex: "#1e90ff" },
+    { name: "GREEN", hex: "#2ed573" },
+    { name: "YELLOW", hex: "#ffa500" },
+    { name: "PURPLE", hex: "#a4b0be" },
+    { name: "RED", hex: "#ff4757" }
+  ];
+
+  function nextMove() {
+    const gameBox = document.getElementById('gameBox');
+    
+    // Flip a coin: 0 = Visual Color, 1 = Text Command
+    const mode = Math.floor(Math.random() * 2);
+    const randomChoice = colors[Math.floor(Math.random() * colors.length)];
+
+    if (mode === 0) {
+      // MODE 0: Show solid color background, generic text
+      document.body.style.backgroundColor = randomChoice.hex;
+      gameBox.innerText = "AVOID THE COLOR!";
+      gameBox.style.color = "#000";
+    } else {
+      // MODE 1: Keep neutral background, show explicit text command
+      document.body.style.backgroundColor = "#f0f0f0";
+      gameBox.innerText = "TOUCH " + randomChoice.name;
+      gameBox.style.color = "#000";
+    }
+  }
+</script>
+</body>
+</html>
