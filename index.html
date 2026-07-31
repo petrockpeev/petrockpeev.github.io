@@ -63,7 +63,7 @@
     if (mode === 0) {
       // MODE 0: Show solid color background, generic text
       document.body.style.backgroundColor = randomChoice.hex;
-      gameBox.innerText = "AVOID THE COLOR!";
+      gameBox.innerText = "AVOID" + randomChoice.name;
       gameBox.style.color = "#000";
     } else {
       // MODE 1: Keep neutral background, show explicit text command
