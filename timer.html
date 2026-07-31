@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Timer with Saved Stop History</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
+        #display { font-size: 40px; font-weight: bold; margin-bottom: 20px; }
+        button { font-size: 16px; padding: 10px 20px; margin: 5px; cursor: pointer; }
+        #history { list-style: none; padding: 0; margin-top: 20px; max-height: 200px; overflow-y: auto; }
+        #history li { font-size: 18px; margin: 5px; color: #333; }
+        .clear-btn { background-color: #ff4d4d; color: white; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer; display: none; margin: 10px auto; }
+    </style>
+</head>
+<body>
+
+    <div id="display">00:00:00.000</div>
+    <div>
+        <button id="startBtn">Start</button>
+        <button id="resetBtn" disabled>Reset</button>
+    </div>
+    
+    <h3>Saved History</h3>
+    <button id="clearHistoryBtn" class="clear-btn">Clear History</button>
+    <ul id="history"></ul>
+
+    <script>
+        let startTime = 0;
+        let elapsedTime = 0;
+        let timerInterval = null;
+
+        const display = document.getElementById('display');
+        const startBtn = document.getElementById('startBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const historyList = document.getElementById('history');
+        const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+
+        // 1. Select the button element from the DOM
+        const button = document.getElementById('startBtn');
+
+        // 2. Create a new Audio object with the path to your sound file
+        const clickSound = new Audio('pop.mp3');
+
+
+        // Load existing history from local storage immediately when page loads
+        let savedHistory = JSON.parse(localStorage.getItem('timerHistory')) || [];
+        renderHistory();
+
+        function formatTime(time) {
+            let ms = parseInt((time % 1000));
+            let s = parseInt((time / 1000) % 60);
+            let m = parseInt((time / (1000 * 60)) % 60);
+            let h = parseInt((time / (1000 * 60 * 60)) % 24);
+
+            return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}.${ms.toString().padStart(3, '0')}`;
+        }
+
+        function updateDisplay() {
+            elapsedTime = Date.now() - startTime;
+            display.textContent = formatTime(elapsedTime);
+        }
+
+        function renderHistory() {
+            historyList.innerHTML = '';
+            savedHistory.forEach((timeString) => {
+                const li = document.createElement('li');
+                li.textContent = timeString;
+                historyList.appendChild(li);
+            });
+            clearHistoryBtn.style.display = savedHistory.length > 0 ? 'block' : 'none';
+        }
+
+        function saveTimeToHistory(timeString) {
+            const timestamp = new Date().toLocaleTimeString();
+            const record = `Stopped at: ${timeString} (Saved at ${timestamp})`;
+            savedHistory.push(record);
+            localStorage.setItem('timerHistory', JSON.stringify(savedHistory));
+            renderHistory();
+        }
+
+        // Extracted the toggle logic so it can be called by both click and keyboard events
+        function toggleTimer() {
+            if (!timerInterval) {
+                // START / RESUME
+                startTime = Date.now() - elapsedTime;
+                timerInterval = setInterval(updateDisplay, 10);
+                startBtn.textContent = 'Stop';
+                resetBtn.disabled = true;
+            } else {
+                // STOP
+                clearInterval(timerInterval);
+                timerInterval = null;
+                startBtn.textContent = 'Resume';
+                resetBtn.disabled = false;
+                
+                if (elapsedTime > 0) {
+                    saveTimeToHistory(formatTime(elapsedTime));
+                }
+            }
+        }
+
+        // Click event listener
+        startBtn.addEventListener('click', toggleTimer);
+
+        // --- NEW CODE: SPACEBAR HOTKEY BINDING ---
+        window.addEventListener('keydown', (event) => {
+            // Check if the pressed key is the Spacebar
+            if (event.code === 'Space' || event.key === ' ') {
+                // Prevent default browser behavior (prevents the page from scrolling down)
+                event.preventDefault(); 
+                
+                // Trigger the timer toggle
+                toggleTimer();
+
+                // Reset audio to the start if clicked repeatedly
+                clickSound.currentTime = 0; 
+                
+                // Play the audio file
+                clickSound.play();
+                
+                // Visual feedback: briefly visually highlight the button
+                startBtn.style.transform = 'scale(0.95)';
+                setTimeout(() => startBtn.style.transform = 'scale(1)', 100);
+            }
+        });
+        // ----------------------------------------
+
+        resetBtn.addEventListener('click', () => {
+            clearInterval(timerInterval);
+            timerInterval = null;
+            startTime = 0;
+            elapsedTime = 0;
+            display.textContent = '00:00:00.000';
+            startBtn.textContent = 'Start';
+            resetBtn.disabled = true;
+        });
+
+        clearHistoryBtn.addEventListener('click', () => {
+            if (confirm("Are you sure you want to clear your saved history?")) {
+                savedHistory = [];
+                localStorage.removeItem('timerHistory');
+                renderHistory();
+            }
+        });
+
+    </script>
+</body>
+</html>
